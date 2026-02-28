@@ -1,0 +1,7 @@
+# jean-ci Coolify Deployment Config
+# Triggered on registry_package:published events
+
+deployments:
+  - package: ghcr.io/musketyr/github-project-sync
+    coolify_app: l4w08sk0g0sc4wscs08owwg4
+    environment: production

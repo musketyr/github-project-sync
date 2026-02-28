@@ -1,0 +1,45 @@
+name: Publish to GHCR
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+env:
+  GHCR_IMAGE: ghcr.io/musketyr/github-project-sync
+
+jobs:
+  publish:
+    name: Build & Publish
+    timeout-minutes: 20
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Determine version
+      id: version
+      run: |
+        COMMIT_TIMESTAMP=$(git show -s --format=%ct HEAD)
+        VERSION=$(date -u -d @$COMMIT_TIMESTAMP +'%Y.%m.%d.%H%M')
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+
+    - name: Login to GHCR
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Build and push
+      run: |
+        docker build -t $GHCR_IMAGE:${{ steps.version.outputs.version }} .
+        docker tag $GHCR_IMAGE:${{ steps.version.outputs.version }} $GHCR_IMAGE:latest
+        docker push $GHCR_IMAGE:${{ steps.version.outputs.version }}
+        docker push $GHCR_IMAGE:latest
+
+    # Coolify deployment is handled by jean-ci via registry_package webhook
+    # See .jean-ci/coolify.yml for configuration
