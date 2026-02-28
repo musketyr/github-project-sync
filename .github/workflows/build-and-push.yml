@@ -48,14 +48,3 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Trigger Coolify deploy via jean-ci
-        if: success()
-        env:
-          JEAN_CI_WEBHOOK_URL: ${{ secrets.JEAN_CI_WEBHOOK_URL }}
-        run: |
-          if [ -n "$JEAN_CI_WEBHOOK_URL" ]; then
-            curl -s -X POST "$JEAN_CI_WEBHOOK_URL" \
-              -H "Content-Type: application/json" \
-              -d "{\"repository\": \"${{ github.repository }}\", \"ref\": \"${{ github.ref }}\", \"sha\": \"${{ github.sha }}\"}"
-          fi
-
